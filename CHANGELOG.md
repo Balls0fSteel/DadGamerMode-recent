@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-23_125949_1782212389
+- Documented the source bug audit and added `PLAN.md` to track deferred follow-ups. The notable deferral is the
+  item-weight patch (`Patches/OnWeightUpdatedPatch.cs`, audit item #10): it scales the shared static
+  `InventoryEquipment.smethod_1`, so the reduction also applies to non-player callers (hideout mannequin screen,
+  bot inventories). It is harmless in single-player and a correct fix needs slot-owner detection, so it was left
+  as-is and recorded in `PLAN.md` rather than chased ad hoc. `PLAN.md` also records the items intentionally left
+  unchanged (unconditional patch enable, the `dvize.GodModeTest` namespace, the duplicate
+  `ConfigurationManagerAttributes`, and the verified-harmless Energy/Hydration event re-entrancy).
+
 ## 2026-06-23_125919_1782212359
 - Bug audit fixes (batch 2 — robustness & cleanup):
   - **Reflection fields validated** (`Patches/InstantProductionPatch.cs`). If the obfuscated progress-field names
