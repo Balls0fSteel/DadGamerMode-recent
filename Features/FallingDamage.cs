@@ -29,6 +29,11 @@ namespace dvize.DadGamerMode.Features
         }
         private void Update()
         {
+            if (player == null)
+            {
+                return;
+            }
+
             player.ActiveHealthController.FallSafeHeight = dadGamerPlugin.NoFallingDamage.Value ? 999999f : 1.8f;
         }
 
@@ -38,20 +43,6 @@ namespace dvize.DadGamerMode.Features
             {
                 var gameWorld = Singleton<GameWorld>.Instance;
                 gameWorld.GetOrAddComponent<NoFallingDamageComponent>();
-            }
-        }
-
-        private static void Disable()
-        {
-            if (!dadGamerPlugin.NoFallingDamage.Value)
-            {
-                var gameWorld = Singleton<GameWorld>.Instance;
-
-                var player = gameWorld.MainPlayer;
-                Logger.LogDebug("DadGamerMode: Setting Falling Damage To Normal");
-
-                player.ActiveHealthController.FallSafeHeight = 1.8f;
-
             }
         }
 

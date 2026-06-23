@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-23_125919_1782212359
+- Bug audit fixes (batch 2 — robustness & cleanup):
+  - **Reflection fields validated** (`Patches/InstantProductionPatch.cs`). If the obfuscated progress-field names
+    (`GClass2438.Class1951_0` / `Class1951.Double_1`) ever fail to resolve on a future game build, the patch now
+    logs a clear error and skips, instead of throwing an opaque NullReferenceException swallowed as "Unexpected
+    error during CompleteProduction".
+  - **Null guards** added to the per-frame `Update()` of `Features/MaxStamina.cs` and `Features/FallingDamage.cs`
+    so a null `MainPlayer` can't spam NREs.
+  - **Dead code removed**: the never-called `NoFallingDamageComponent.Disable()` method, and the unused
+    `tmpDmg` / `healthController` static fields in `Patches/DestroyBodyPart.cs` and `Features/CODMode.cs`.
+- Verified with `dotnet build DadGamerMode.csproj -c Release` (0 warnings, 0 errors) after each batch.
+
 ## 2026-06-23_125849_1782212329
 - Bug audit fixes (batch 1 — behavioral). Fixed five medium-severity issues found in a full source audit:
   - **Headshot % damage no longer stacks with the all-body %** (`Patches/ApplyDamage.cs`). For head hits the
