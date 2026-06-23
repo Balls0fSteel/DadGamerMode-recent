@@ -144,8 +144,8 @@ Escape from Tarkov or BSG's official servers. Use at your own risk; it's a cheat
 
 ## Credits
 
+- **Author (this fork):** [Balls0fSteel](https://github.com/Balls0fSteel) — revival and SPT 4.0.x update.
 - **Original author:** [dvize](https://github.com/dvize/DadGamerMode) — created DadGamerMode.
-- **This fork:** revival and SPT 4.0.x update.
 
 ## License
 

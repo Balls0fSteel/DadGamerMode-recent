@@ -8,9 +8,9 @@ using VersionChecker;
 [assembly: AssemblyTitle("dvize.DadGamerMode")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Balls0fSteel")]
 [assembly: AssemblyProduct("dvize.DadGamerMode")]
-[assembly: AssemblyCopyright("Copyright (c)  2024")]
+[assembly: AssemblyCopyright("Copyright (c) 2024-2026 Balls0fSteel")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
