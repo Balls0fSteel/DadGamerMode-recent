@@ -365,6 +365,5 @@ FodyWeavers.xsd
 
 # SPT folder used for work
 /SPT
-# References folder for work
-/references
+# References folder (build dependencies) is intentionally tracked — do not ignore
 

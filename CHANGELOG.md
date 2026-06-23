@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-23_120701_1782209221
+- Reverted the earlier decision to ignore `references/`. The folder holds the build dependencies
+  (Unity engine modules, EFT `Assembly-CSharp.dll`, SPT/BepInEx/Harmony loaders) the `.csproj`
+  references, so the project does not build without it. Removed the `/references` rule from
+  `.gitignore` and re-tracked all 115 DLL/XML files (~44 MB) so clones build out of the box.
+
 ## 2026-06-23_120409_1782209049
 - Set authorship to **Balls0fSteel** (this fork): updated README credits, `LICENSE.txt` copyright holder
   (added Balls0fSteel 2024-2026, retained dvize for the original), and `Properties/AssemblyInfo.cs`
