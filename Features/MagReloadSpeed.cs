@@ -10,6 +10,48 @@ namespace dvize.DadGamerMode.Features
     {
         private Player player;
 
+        // Snapshot of the engine's real reload/unload times, captured once before we first overwrite
+        // them, so disabling the feature restores the genuine values instead of hardcoded guesses.
+        private static bool originalsCaptured = false;
+        private static float originalBaseLoadTime;
+        private static float originalBaseUnloadTime;
+
+        private static void ApplyConfiguredSpeeds()
+        {
+            var settings = Singleton<BackendConfigSettingsClass>.Instance;
+            if (settings == null)
+            {
+                return;
+            }
+
+            if (!originalsCaptured)
+            {
+                originalBaseLoadTime = settings.BaseLoadTime;
+                originalBaseUnloadTime = settings.BaseUnloadTime;
+                originalsCaptured = true;
+            }
+
+            settings.BaseLoadTime = dadGamerPlugin.ReloadSpeed.Value;
+            settings.BaseUnloadTime = dadGamerPlugin.UnloadSpeed.Value;
+        }
+
+        private static void RestoreOriginalSpeeds()
+        {
+            if (!originalsCaptured)
+            {
+                return;
+            }
+
+            var settings = Singleton<BackendConfigSettingsClass>.Instance;
+            if (settings == null)
+            {
+                return;
+            }
+
+            settings.BaseLoadTime = originalBaseLoadTime;
+            settings.BaseUnloadTime = originalBaseUnloadTime;
+        }
+
         private void Start()
         {
             // Subscribe to configuration change events
@@ -19,15 +61,14 @@ namespace dvize.DadGamerMode.Features
 
             if (dadGamerPlugin.ToggleReloadUnloadSpeed.Value)
             {
-                Singleton<BackendConfigSettingsClass>.Instance.BaseLoadTime = dadGamerPlugin.ReloadSpeed.Value;
-                Singleton<BackendConfigSettingsClass>.Instance.BaseUnloadTime = dadGamerPlugin.UnloadSpeed.Value;
-            } 
+                ApplyConfiguredSpeeds();
+            }
         }
         private void OnReloadSpeedChanged(object sender, EventArgs e)
         {
             if (dadGamerPlugin.ToggleReloadUnloadSpeed.Value)
             {
-                Singleton<BackendConfigSettingsClass>.Instance.BaseLoadTime = dadGamerPlugin.ReloadSpeed.Value;
+                ApplyConfiguredSpeeds();
             }
         }
 
@@ -35,7 +76,7 @@ namespace dvize.DadGamerMode.Features
         {
             if (dadGamerPlugin.ToggleReloadUnloadSpeed.Value)
             {
-                Singleton<BackendConfigSettingsClass>.Instance.BaseUnloadTime = dadGamerPlugin.UnloadSpeed.Value;
+                ApplyConfiguredSpeeds();
             }
         }
 
@@ -43,16 +84,13 @@ namespace dvize.DadGamerMode.Features
         {
             if (dadGamerPlugin.ToggleReloadUnloadSpeed.Value)
             {
-                Singleton<BackendConfigSettingsClass>.Instance.BaseLoadTime = dadGamerPlugin.ReloadSpeed.Value;
-                Singleton<BackendConfigSettingsClass>.Instance.BaseUnloadTime = dadGamerPlugin.UnloadSpeed.Value;
+                ApplyConfiguredSpeeds();
             }
             else
             {
-                // Reset to default values
-                Singleton<BackendConfigSettingsClass>.Instance.BaseLoadTime = 0.85f;
-                Singleton<BackendConfigSettingsClass>.Instance.BaseUnloadTime = 0.3f;
-                dadGamerPlugin.ReloadSpeed.Value = 0.85f;
-                dadGamerPlugin.UnloadSpeed.Value = 0.3f;
+                // Restore the engine's real reload/unload times. Leave the user's saved
+                // ReloadSpeed/UnloadSpeed config values untouched so they persist for next enable.
+                RestoreOriginalSpeeds();
             }
         }
         public static void Enable()
@@ -65,6 +103,13 @@ namespace dvize.DadGamerMode.Features
         }
         private void OnDestroy()
         {
+            // Restore the engine's real values so the modified times don't leak into the hideout/menu
+            // and subsequent raids once this raid's component is torn down.
+            if (dadGamerPlugin.ToggleReloadUnloadSpeed.Value)
+            {
+                RestoreOriginalSpeeds();
+            }
+
             // Unsubscribe from configuration change events
             dadGamerPlugin.ReloadSpeed.SettingChanged -= OnReloadSpeedChanged;
             dadGamerPlugin.UnloadSpeed.SettingChanged -= OnUnloadSpeedChanged;
