@@ -362,3 +362,9 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /.config/dotnet-tools.json
+
+# SPT folder used for work
+/SPT
+# References folder for work
+/references
+

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using dvize.GodModeTest;
@@ -9,16 +9,18 @@ using SPT.Reflection.Patching;
 namespace dvize.DadGamerMode.Patches
 {
 
-    // Patch for the Update method
+    // Patch for the production controller Update method.
+    // SPT 4.0 (EFT 40087): production controller GClass1931 -> GClass2431,
+    // producing item GClass1937 -> GClass2438 (progress holder Class1666 -> Class1951).
     internal class InstantUpdatePatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(GClass1931), nameof(GClass1931.Update));
+            return AccessTools.Method(typeof(GClass2431), nameof(GClass2431.Update));
         }
 
         [PatchPrefix]
-        private static bool Prefix(GClass1931 __instance, float deltaTime)
+        private static bool Prefix(GClass2431 __instance)
         {
             if (dadGamerPlugin.InstantProductionEnabled.Value)
             {
@@ -27,8 +29,8 @@ namespace dvize.DadGamerMode.Patches
                     return false;
                 }
 
-                // Filter itemsToComplete by removing bitcoin farm
-                List<KeyValuePair<string, GClass1937>> itemsToComplete = new List<KeyValuePair<string, GClass1937>>(__instance.ProducingItems);
+                // Filter itemsToComplete by removing bitcoin farm and fuel
+                List<KeyValuePair<string, GClass2438>> itemsToComplete = new List<KeyValuePair<string, GClass2438>>(__instance.ProducingItems);
                 itemsToComplete.RemoveAll(x => x.Key == "5d5589c1f934db045e6c5492" || x.Key == "5d5c205bd582a50d042a3c0e"); //bitcoin and fuel?
 
                 foreach (var kvp in itemsToComplete)
@@ -48,18 +50,20 @@ namespace dvize.DadGamerMode.Patches
     }
 
     // Extension method to handle CompleteProduction
-    internal static class GClass1933Extensions
+    internal static class GClass2431Extensions
     {
-        private static readonly FieldInfo Class1666Field;
+        private static readonly FieldInfo ProgressHolderField;
         private static readonly FieldInfo ProgressField;
 
-        static GClass1933Extensions()
+        static GClass2431Extensions()
         {
-            Class1666Field = AccessTools.Field(typeof(GClass1937), "class1666_0");
-            ProgressField = AccessTools.Field(typeof(GClass1937.Class1666), "double_1");
+            // GClass2438.Class1951_0 holds the per-item progress object (Class1951);
+            // Class1951.Double_1 is the progress value (exposed publicly as Class1951.Progress).
+            ProgressHolderField = AccessTools.Field(typeof(GClass2438), "Class1951_0");
+            ProgressField = AccessTools.Field(typeof(GClass2438.Class1951), "Double_1");
         }
 
-        public static void CompleteProduction(this GClass1931 __instance, GClass1937 producingItem, ProductionBuildAbstractClass scheme)
+        public static void CompleteProduction(this GClass2431 __instance, GClass2438 producingItem, ProductionBuildAbstractClass scheme)
         {
             if (__instance == null || producingItem == null || scheme == null)
             {
@@ -69,15 +73,15 @@ namespace dvize.DadGamerMode.Patches
 
             try
             {
-                var class1666Instance = Class1666Field.GetValue(producingItem);
-                if (class1666Instance == null)
+                var progressHolder = ProgressHolderField.GetValue(producingItem);
+                if (progressHolder == null)
                 {
-                    dadGamerPlugin.Logger.LogError("CompleteProduction: class1666Instance is null.");
+                    dadGamerPlugin.Logger.LogError("CompleteProduction: progressHolder is null.");
                     return;
                 }
 
                 // Set the Progress field to 1.0 (complete)
-                ProgressField.SetValue(class1666Instance, 1.0);
+                ProgressField.SetValue(progressHolder, 1.0);
 
                 Item item = __instance.CreateCompleteItem(scheme);
                 if (item == null)
@@ -86,18 +90,9 @@ namespace dvize.DadGamerMode.Patches
                     return;
                 }
 
-                // Log the current state of the ProducingItems dictionary
-                dadGamerPlugin.Logger.LogInfo("CompleteProduction: Current ProducingItems:");
-                foreach (var kvp in __instance.ProducingItems)
-                {
-                    dadGamerPlugin.Logger.LogInfo($"Key: {kvp.Key}, Value SchemeId: {kvp.Value.SchemeId}");
-                }
-
                 // Check if the SchemeId exists in the dictionary before calling BeforeProductionComplete
                 if (__instance.ProducingItems != null && __instance.ProducingItems.ContainsKey(producingItem.SchemeId))
                 {
-                    dadGamerPlugin.Logger.LogInfo($"CompleteProduction: Found SchemeId {producingItem.SchemeId} in ProducingItems.");
-
                     __instance.BeforeProductionComplete(producingItem.SchemeId);
                     __instance.CompleteItemsStorage.AddItem(scheme._id, item);
                     __instance.ProducingItems.Remove(producingItem.SchemeId);

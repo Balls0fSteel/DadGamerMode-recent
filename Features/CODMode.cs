@@ -1,11 +1,11 @@
-﻿using BepInEx.Logging;
+using BepInEx.Logging;
 using Comfort.Common;
 using dvize.GodModeTest;
 using EFT;
 using EFT.HealthSystem;
 using UnityEngine;
 
-using AbstractIEffect = EFT.HealthSystem.ActiveHealthController.GClass2429;
+using AbstractIEffect = EFT.HealthSystem.ActiveHealthController.GClass3008;
 
 namespace dvize.DadGamerMode.Features
 {
@@ -16,7 +16,7 @@ namespace dvize.DadGamerMode.Features
         private static float timeSinceLastHit = 0f;
         private static bool isRegenerating = false;
         private static float newHealRate;
-        private static DamageInfo tmpDmg;
+        private static DamageInfoStruct tmpDmg;
         private static HealthValue currentHealth;
         private static int frameCount = 0;
 
@@ -51,7 +51,7 @@ EBodyPart.LeftLeg, EBodyPart.LeftArm, EBodyPart.RightArm };
             isRegenerating = false;
             timeSinceLastHit = 0f;
             newHealRate = 0f;
-            tmpDmg = new DamageInfo();
+            tmpDmg = new DamageInfoStruct();
             currentHealth = null;
             frameCount = 0;
 
@@ -73,18 +73,22 @@ EBodyPart.LeftLeg, EBodyPart.LeftArm, EBodyPart.RightArm };
             //grabbed this from remove negative effects method
             if (dadGamerPlugin.CODModeToggle.Value && !dadGamerPlugin.CODBleedingDamageToggle.Value)
             {
-                //if (Singleton<ActiveHealthController.Class1917>.Instance.method_0(effect as AbstractIEffect))
-                if (!(effect is GInterface252) && !(effect is GInterface253))
-                {
-                    //GInterface257is Light Bleeding
-                    //GInterface258 is Heavy Bleeding
-                    //GInterface260 is fracture
-                    //GInterface274 is pain  +15?
-                    //GInterface278 is tremor
+                // SPT 4.0 (EFT 40087): the old GInterface252/253 effect markers can no longer be
+                // referenced by name. Instead we explicitly remove the negative effects COD mode is
+                // meant to nullify. LightBleeding/HeavyBleeding both derive from the public
+                // ActiveHealthController.Bleeding base; Fracture/Pain/Tremor are matched by type name
+                // (they are protected nested types and cannot be referenced directly).
+                string effectName = effect.GetType().Name;
+                bool isNegativeEffect = effect is ActiveHealthController.Bleeding
+                    || effectName == "Fracture"
+                    || effectName == "Pain"
+                    || effectName == "Tremor";
 
+                if (isNegativeEffect)
+                {
                     healthController.RemoveEffectFromList(effect as AbstractIEffect);
 #if DEBUG
-                    Logger.LogDebug("Effect is a Fracture, Bleeding, or Pain and has been removed");
+                    Logger.LogDebug($"COD Mode removed negative effect: {effectName}");
 #endif
                 }
             }
@@ -124,15 +128,14 @@ EBodyPart.LeftLeg, EBodyPart.LeftArm, EBodyPart.RightArm };
                 {
                     //if bleeding damage is not enabled, repair the limb
 
-                    currentHealth = healthController.Dictionary_0[limb].Health;
-                    //bool isBleeding = healthController.FindActiveEffect<GInterface242>(limb) != null || healthController.FindActiveEffect<GInterface243>(limb) != null;
+                    currentHealth = healthController.Dictionary_0_1[limb].Health;
 
-                    if (!currentHealth.AtMaximum && !healthController.Dictionary_0[limb].IsDestroyed)
+                    if (!currentHealth.AtMaximum && !healthController.Dictionary_0_1[limb].IsDestroyed)
                     {
                         currentHealth.Current += newHealRate;
                     }
 
-                    
+
                 }
             }
         }
@@ -146,7 +149,7 @@ EBodyPart.LeftLeg, EBodyPart.LeftArm, EBodyPart.RightArm };
             }
         }
 
-        private void Player_BeingHitAction(DamageInfo arg1, EBodyPart arg2, float arg3)
+        private void Player_BeingHitAction(DamageInfoStruct arg1, EBodyPart arg2, float arg3)
         {
             //Logger.LogDebug("DadGamerMode: Player_BeingHitAction called");
             timeSinceLastHit = 0f;

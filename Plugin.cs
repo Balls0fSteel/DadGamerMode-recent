@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using SPT.Reflection.Patching;
 using BepInEx;
@@ -9,7 +9,7 @@ using EFT;
 
 namespace dvize.GodModeTest
 {
-    [BepInPlugin("com.dvize.DadGamerMode", "dvize.DadGamerMode", "1.9.3")]
+    [BepInPlugin("com.dvize.DadGamerMode", "dvize.DadGamerMode", "1.9.4")]
     //[BepInDependency("com.SPT.core", "3.8.0")]
     public class dadGamerPlugin : BaseUnityPlugin
     {
@@ -202,7 +202,7 @@ namespace dvize.GodModeTest
             new DadGamerMode.Patches.InstantConstructionPatch().Enable();
         }
 
-        
+
         internal class NewGamePatch : ModulePatch
         {
             protected override MethodBase GetTargetMethod() => typeof(GameWorld).GetMethod(nameof(GameWorld.OnGameStarted));
@@ -223,4 +223,3 @@ namespace dvize.GodModeTest
 
 
 }
-

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Threading.Tasks;
 using dvize.GodModeTest;
 using EFT.Hideout;
@@ -10,15 +10,16 @@ namespace dvize.DadGamerMode.Patches
     //hideout upgrades
 
     // Patch for the method_0 (construction and upgrade timing)
+    // SPT 4.0 (EFT 40087): AreaData.method_0 now takes (int timestamp, bool alreadyUnderConstructing).
     internal class InstantConstructionPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(AreaData), "method_0", new[] { typeof(int) });
+            return AccessTools.Method(typeof(AreaData), "method_0", new[] { typeof(int), typeof(bool) });
         }
 
         [PatchPrefix]
-        private static bool Prefix(ref Task __result, AreaData __instance, int timestamp)
+        private static bool Prefix(ref Task __result, AreaData __instance, int timestamp, bool alreadyUnderConstructing)
         {
             if (dadGamerPlugin.InstantConstructionEnabled.Value)
             {

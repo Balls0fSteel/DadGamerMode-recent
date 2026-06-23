@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using SPT.Reflection.Patching;
 using dvize.GodModeTest;
@@ -11,7 +11,7 @@ namespace dvize.DadGamerMode.Patches
     internal class DestroyBodyPartPatch : ModulePatch
     {
         private static readonly EBodyPart[] critBodyParts = { EBodyPart.Stomach, EBodyPart.Head, EBodyPart.Chest };
-        private static DamageInfo tmpDmg;
+        private static DamageInfoStruct tmpDmg;
         private static ActiveHealthController healthController;
         protected override MethodBase GetTargetMethod()
         {

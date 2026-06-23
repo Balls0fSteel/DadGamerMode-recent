@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using SPT.Reflection.Patching;
 using dvize.GodModeTest;
@@ -18,7 +18,7 @@ namespace dvize.DadGamerMode.Patches
         }
 
         [PatchPrefix]
-        private static bool Prefix(ActiveHealthController __instance, ref float damage, EBodyPart bodyPart, DamageInfo damageInfo)
+        private static bool Prefix(ActiveHealthController __instance, ref float damage, EBodyPart bodyPart, DamageInfoStruct damageInfo)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace dvize.DadGamerMode.Patches
                     }
 
                     //add check if bodypart at minimum for non-critical parts as it can still kill you and CODMode is not enabled
-                    if (currentHealth.AtMinimum && 
+                    if (currentHealth.AtMinimum &&
                         (dadGamerPlugin.Keep1HealthSelection.Value == "Head And Thorax" || dadGamerPlugin.Keep1HealthSelection.Value == "All") &&
                         !dadGamerPlugin.CODModeToggle.Value
                         )
