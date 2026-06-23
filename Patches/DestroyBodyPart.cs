@@ -11,8 +11,6 @@ namespace dvize.DadGamerMode.Patches
     internal class DestroyBodyPartPatch : ModulePatch
     {
         private static readonly EBodyPart[] critBodyParts = { EBodyPart.Stomach, EBodyPart.Head, EBodyPart.Chest };
-        private static DamageInfoStruct tmpDmg;
-        private static ActiveHealthController healthController;
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(ActiveHealthController), nameof(ActiveHealthController.DestroyBodyPart));

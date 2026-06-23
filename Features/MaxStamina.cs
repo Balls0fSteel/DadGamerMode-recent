@@ -28,6 +28,11 @@ namespace dvize.DadGamerMode.Features
         }
         private void Update()
         {
+            if (player == null)
+            {
+                return;
+            }
+
             if (dadGamerPlugin.MaxStaminaToggle.Value)
             {
                 player.Physical.Stamina.Current = player.Physical.Stamina.TotalCapacity.Value;

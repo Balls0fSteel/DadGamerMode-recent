@@ -61,6 +61,15 @@ namespace dvize.DadGamerMode.Patches
             // Class1951.Double_1 is the progress value (exposed publicly as Class1951.Progress).
             ProgressHolderField = AccessTools.Field(typeof(GClass2438), "Class1951_0");
             ProgressField = AccessTools.Field(typeof(GClass2438.Class1951), "Double_1");
+
+            // AccessTools.Field returns null (it does not throw) when an obfuscated name no longer
+            // exists. Surface that clearly here instead of letting it become an opaque NRE later.
+            if (ProgressHolderField == null || ProgressField == null)
+            {
+                dadGamerPlugin.Logger?.LogError(
+                    "InstantProduction: could not resolve progress fields (GClass2438.Class1951_0 / Class1951.Double_1). " +
+                    "The obfuscated names likely changed for this game build; instant production will not work.");
+            }
         }
 
         public static void CompleteProduction(this GClass2431 __instance, GClass2438 producingItem, ProductionBuildAbstractClass scheme)
@@ -68,6 +77,12 @@ namespace dvize.DadGamerMode.Patches
             if (__instance == null || producingItem == null || scheme == null)
             {
                 dadGamerPlugin.Logger.LogError("CompleteProduction: __instance, producingItem, or scheme is null.");
+                return;
+            }
+
+            if (ProgressHolderField == null || ProgressField == null)
+            {
+                dadGamerPlugin.Logger.LogError("CompleteProduction: progress field reflection unavailable; skipping.");
                 return;
             }
 

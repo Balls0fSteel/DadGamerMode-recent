@@ -16,9 +16,9 @@ namespace dvize.DadGamerMode.Features
         private static float timeSinceLastHit = 0f;
         private static bool isRegenerating = false;
         private static float newHealRate;
-        private static DamageInfoStruct tmpDmg;
         private static HealthValue currentHealth;
-        private static int frameCount = 0;
+        private static float timeSinceLastHeal = 0f;
+        private const float HealInterval = 1f; // heal once per second of real time (framerate-independent)
 
         private static readonly EBodyPart[] bodyPartsDict = { EBodyPart.Stomach, EBodyPart.Chest, EBodyPart.Head, EBodyPart.RightLeg,
 EBodyPart.LeftLeg, EBodyPart.LeftArm, EBodyPart.RightArm };
@@ -51,9 +51,8 @@ EBodyPart.LeftLeg, EBodyPart.LeftArm, EBodyPart.RightArm };
             isRegenerating = false;
             timeSinceLastHit = 0f;
             newHealRate = 0f;
-            tmpDmg = new DamageInfoStruct();
             currentHealth = null;
-            frameCount = 0;
+            timeSinceLastHeal = 0f;
 
             player.OnPlayerDeadOrUnspawn += Player_OnPlayerDeadOrUnspawn;
             player.BeingHitAction += Player_BeingHitAction;
@@ -98,20 +97,20 @@ EBodyPart.LeftLeg, EBodyPart.LeftArm, EBodyPart.RightArm };
         {
             if (dadGamerPlugin.CODModeToggle.Value)
             {
-                frameCount++;
                 timeSinceLastHit += Time.unscaledDeltaTime;
 
-                if (frameCount >= 60) // Check every 60 frames instead
+                if (timeSinceLastHit >= dadGamerPlugin.CODModeHealWait.Value)
                 {
-                    frameCount = 0;
-
-                    if (timeSinceLastHit >= dadGamerPlugin.CODModeHealWait.Value)
+                    if (!isRegenerating)
                     {
-                        if (!isRegenerating)
-                        {
-                            isRegenerating = true;
-                        }
+                        isRegenerating = true;
+                    }
 
+                    // Heal on a fixed real-time interval so regen speed is the same regardless of FPS.
+                    timeSinceLastHeal += Time.unscaledDeltaTime;
+                    if (timeSinceLastHeal >= HealInterval)
+                    {
+                        timeSinceLastHeal = 0f;
                         StartHealing();
                     }
                 }
@@ -126,16 +125,13 @@ EBodyPart.LeftLeg, EBodyPart.LeftArm, EBodyPart.RightArm };
 
                 foreach (var limb in bodyPartsDict)
                 {
-                    //if bleeding damage is not enabled, repair the limb
-
+                    // COD mode heals HP over time; clamp so a part never overshoots its maximum.
                     currentHealth = healthController.Dictionary_0_1[limb].Health;
 
                     if (!currentHealth.AtMaximum && !healthController.Dictionary_0_1[limb].IsDestroyed)
                     {
-                        currentHealth.Current += newHealRate;
+                        currentHealth.Current = Mathf.Min(currentHealth.Current + newHealRate, currentHealth.Maximum);
                     }
-
-
                 }
             }
         }
@@ -153,6 +149,7 @@ EBodyPart.LeftLeg, EBodyPart.LeftArm, EBodyPart.RightArm };
         {
             //Logger.LogDebug("DadGamerMode: Player_BeingHitAction called");
             timeSinceLastHit = 0f;
+            timeSinceLastHeal = 0f;
             isRegenerating = false;
         }
 

@@ -117,6 +117,19 @@ namespace dvize.GodModeTest
 
         internal void Awake()
         {
+            if (Logger == null)
+            {
+                Logger = BepInEx.Logging.Logger.CreateLogSource("DadGamerMode");
+            }
+
+            // Verify the running EFT build matches what this plugin was built for. On a mismatch this
+            // logs an error, shows a notice in the F12 menu, and we skip all binding/patching so we
+            // don't install Harmony hooks against changed/obfuscated method signatures.
+            if (!VersionChecker.TarkovVersion.CheckEftVersion(Logger, Info, Config))
+            {
+                Logger.LogError("DadGamerMode disabled due to EFT version mismatch.");
+                return;
+            }
 
             Godmode = Config.Bind("1. Health", "Godmode", false, new ConfigDescription("Makes You Invincible Except for Fall Damage",
                 null, new ConfigurationManagerAttributes { IsAdvanced = false, Order = 9 }));
@@ -183,11 +196,6 @@ namespace dvize.GodModeTest
 
             totalWeightReductionPercentage = Config.Bind("3. QOL", "Item Total Weight % (100 is normal)", 100, new ConfigDescription("Percentage to reduce the items total weight. Must set before raid",
                 new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 }));
-
-            if (Logger == null)
-            {
-                Logger = BepInEx.Logging.Logger.CreateLogSource("DadGamerMode");
-            }
 
             // Physical related patches to Player
             new NewGamePatch().Enable();
